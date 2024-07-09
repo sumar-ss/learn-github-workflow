@@ -40,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo 'npm run docker:test'
+      - run: free -h
       
   release-to-development:
     if: github.ref == 'refs/heads/develop'
