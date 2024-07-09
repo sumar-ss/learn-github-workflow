@@ -1,0 +1,108 @@
+name: 01_Service_Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - 'release/**'
+      - main
+  pull_request:
+    branches:
+      - develop
+      - 'release/**'
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  MONGODB_URI: mongodb://mongo1:27017/abc
+  JWT_KEYS_URI: https://example.com/.well-known/jwks.json
+  JWT_VERIFY_AUD: https://example.aud.com
+  JWT_VERIFY_ISS: https://example.iss.com/
+  REDIS_PASSWORD: a_random_password
+  AUTH0_DOMAIN: example.au.auth0.com
+  AUTH0_CLIENT_ID: some_client_id
+  AUTH0_CLIENT_SECRET: some_client_secret
+  AUTH0_API_AUDIENCE: https://example.au.auth0.com/api/v2/
+  SENTRY_DSN: SOME_SENTRY_DSN
+  NOVU_API_KEY: SOME_NOVU_API_KEY
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo 'snyk scan here'
+  install-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo 'npm run docker:test'
+      
+  release-to-development:
+    if: github.ref == 'refs/heads/develop'
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+      - install-build-test
+      - scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install AWS Copilot
+        run: echo "./install_copilot.sh"
+      - name: Deploy service
+        run: echo "copilot svc deploy -a dummy-app -n api -e development --tag development-$(git rev-parse --short HEAD)"
+
+  release-to-staging:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+      - install-build-test
+      - scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install AWS Copilot
+        run: ./install_copilot.sh
+      - name: Deploy service
+        run: echo "copilot svc deploy -a dummy-app -n api -e staging --tag staging-$(git rev-parse --short HEAD)"
+
+  release-to-production:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+      - install-build-test
+      - scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install AWS Copilot
+        run: echo "./install_copilot.sh"
+      - name: Deploy service
+        run: echo "copilot svc deploy -a dummy-app -n api -e production --tag production-$(git rev-parse --short HEAD)"
