@@ -1,0 +1,26 @@
+name: development
+type: Environment
+
+network:
+  vpc:
+    id: vpc-029228ddaad30851a
+    subnets:
+      public:
+        - id: subnet-075ee1db02e0e29ea
+        - id: subnet-0accf07f2c4982efa
+        - id: subnet-003a8cc2f855573ff
+      private:
+        - id: subnet-0fad62aa3aa595d08
+        - id: subnet-0ab45cc0a8122b7ef
+        - id: subnet-0294234e3c3489c88
+
+cdn:
+  terminate_tls: true
+
+http:
+  public:
+    ingress:
+      cdn: true
+
+observability:
+  container_insights: false

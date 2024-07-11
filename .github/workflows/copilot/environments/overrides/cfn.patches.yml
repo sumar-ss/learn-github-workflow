@@ -1,0 +1,56 @@
+- op: add
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/HttpVersion
+  value: http2
+
+- op: replace
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/ViewerCertificate/1/MinimumProtocolVersion
+  value: TLSv1.2_2021
+
+- op: replace
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/Origins/0/CustomOriginConfig/OriginProtocolPolicy
+  value: https-only
+
+- op: add
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/Origins/0/CustomOriginConfig/OriginSSLProtocols
+  value:
+    - TLSv1.2
+
+- op: add
+  path: /Mappings
+  value:
+    WAFMap:
+      development:
+        WAFArn: 'arn:aws:wafv2:us-east-1:940876767213:global/webacl/triniti-plat-development-WebACL/ace368b2-9501-4860-b74d-5563d92cd297'
+      staging:
+        WAFArn: 'arn:aws:wafv2:us-east-1:827906647904:global/webacl/triniti-plat-staging-WebACL/55d2b0b7-d5b2-49c3-8483-a36a7c787552'
+      production:
+        WAFArn: 'arn:aws:wafv2:us-east-1:969247883904:global/webacl/triniti-plat-production-WebACL/30c9b5f0-5bec-4190-94e9-a117da54d2fa'
+
+- op: add
+  path: /Conditions/IsProduction
+  value: !Equals [!Ref EnvironmentName, production]
+
+- op: add
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/WebACLId
+  value: !FindInMap [WAFMap, !Ref EnvironmentName, WAFArn]
+
+- op: add
+  path: /Resources/CloudFrontLogsBucket
+  value:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AppName}-${EnvironmentName}-cloudfront-logs
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 30
+
+- op: add
+  path: /Resources/CloudFrontDistribution/Properties/DistributionConfig/Logging
+  value:
+    Bucket: !Sub ${AppName}-${EnvironmentName}-cloudfront-logs.s3.amazonaws.com
+    IncludeCookies: False
+    Prefix: api/

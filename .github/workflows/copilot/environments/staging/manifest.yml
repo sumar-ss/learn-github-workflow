@@ -1,0 +1,26 @@
+name: staging
+type: Environment
+
+network:
+  vpc:
+    id: vpc-04fbe6bc8709a696e
+    subnets:
+      public:
+        - id: subnet-070400e387bca20f2
+        - id: subnet-02e7db5c1476172ed
+        - id: subnet-0c17a6c9374af156a
+      private:
+        - id: subnet-06b6793a75260e03d
+        - id: subnet-0494c53681dde9d33
+        - id: subnet-0cbc0e8571847bbf8
+
+cdn:
+  terminate_tls: true
+
+http:
+  public:
+    ingress:
+      cdn: true
+
+observability:
+  container_insights: false
