@@ -61,6 +61,24 @@ jobs:
           node-version: 18
       - name: Install AWS Copilot
         run: echo "./install_copilot.sh"
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            copilot_environments:
+              - 'copilot/environments/addons/**'
+              - 'copilot/environments/overrides/cfn.patches.yml'
+              - 'copilot/environments/development/**'
+      - name: Deploy Copilot Environment
+        if: steps.filter.outputs.copilot_environments == 'true'
+        run: |
+          cat <<- EOF > copilot/environments/addons/addons.parameters.yml
+          Parameters:
+            RedisPassword: 'super secret'
+            MongoPassword: 'super secret'
+          EOF
+          echo 'copilot env deploy --app triniti-plat --name development --diff-yes'
       - name: Deploy service
         run: echo "copilot svc deploy -a dummy-app -n api -e development --tag development-$(git rev-parse --short HEAD)"
 
@@ -83,6 +101,24 @@ jobs:
           node-version: 18
       - name: Install AWS Copilot
         run: ./install_copilot.sh
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            copilot_environments:
+              - 'copilot/environments/addons/**'
+              - 'copilot/environments/overrides/cfn.patches.yml'
+              - 'copilot/environments/staging/**'
+      - name: Deploy Copilot Environment
+        if: steps.filter.outputs.copilot_environments == 'true'
+        run: |
+          cat <<- EOF > copilot/environments/addons/addons.parameters.yml
+          Parameters:
+            RedisPassword: 'super secret'
+            MongoPassword: 'super secret'
+          EOF
+          echo 'copilot env deploy --app triniti-plat --name staging --diff-yes'
       - name: Deploy service
         run: echo "copilot svc deploy -a dummy-app -n api -e staging --tag staging-$(git rev-parse --short HEAD)"
 
@@ -105,5 +141,23 @@ jobs:
           node-version: 18
       - name: Install AWS Copilot
         run: echo "./install_copilot.sh"
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            copilot_environments:
+              - 'copilot/environments/addons/**'
+              - 'copilot/environments/overrides/cfn.patches.yml'
+              - 'copilot/environments/production/**'
+      - name: Deploy Copilot Environment
+        if: steps.filter.outputs.copilot_environments == 'true'
+        run: |
+          cat <<- EOF > copilot/environments/addons/addons.parameters.yml
+          Parameters:
+            RedisPassword: 'super secret'
+            MongoPassword: 'super secret'
+          EOF
+          echo 'copilot env deploy --app triniti-plat --name production --diff-yes'
       - name: Deploy service
         run: echo "copilot svc deploy -a dummy-app -n api -e production --tag production-$(git rev-parse --short HEAD)"

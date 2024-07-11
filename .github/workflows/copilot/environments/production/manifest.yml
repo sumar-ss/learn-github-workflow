@@ -1,0 +1,26 @@
+name: production
+type: Environment
+
+network:
+  vpc:
+    id: vpc-074da6714f0f72c47
+    subnets:
+      public:
+        - id: subnet-0b32430315c94b33a
+        - id: subnet-0a1ecdccd21fb65c8
+        - id: subnet-01cf9d69d7d45dc8e
+      private:
+        - id: subnet-0d1bc86301dcefff2
+        - id: subnet-07395f1615e81950b
+        - id: subnet-013fa8fcf0121470f
+
+cdn:
+  terminate_tls: true
+
+http:
+  public:
+    ingress:
+      cdn: true
+
+observability:
+  container_insights: true
